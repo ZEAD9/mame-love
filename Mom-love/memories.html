@@ -1,0 +1,58 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ذكرياتنا ❤️</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <main class="home memories">
+        <div class="small-text">أجمل لحظات حياتي</div>
+
+        <h1>ذكرياتنا يا أمي ❤️</h1>
+
+        <p>
+            كل لحظة معاكي ليها مكان خاص في قلبي،
+            وكل ذكرى بتفكرني قد إيه أنا محظوظ بيكي.
+        </p>
+
+        <div class="gallery">
+            <div class="photo">
+                <img src="images/photo1.jpg" alt="ذكرى جميلة">
+                <span>أجمل ذكرى ❤️</span>
+            </div>
+
+            <div class="photo">
+                <img src="images/photo2.jpg" alt="لحظة جميلة">
+                <span>أغلى الناس</span>
+            </div>
+
+            <div class="photo">
+                <img src="images/photo3.jpg" alt="لحظاتنا">
+                <span>ربنا يخليكي ليا</span>
+            </div>
+        </div>
+
+        <button onclick="location.href='heart.html'">
+            شوفي المفاجأة الجاية ❤️
+        </button>
+    </main>
+<audio id="backgroundMusic" autoplay loop>
+    <source src="music.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+const music = document.getElementById("backgroundMusic");
+music.volume = 0.15;
+
+music.play().catch(() => {
+    document.addEventListener("click", () => {
+        music.play();
+    }, { once: true });
+});
+</script>
+</body>
+</html>

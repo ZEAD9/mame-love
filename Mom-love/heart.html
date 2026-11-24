@@ -1,0 +1,185 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>قلب لأمي ❤️</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    background: radial-gradient(circle, #351027, #030303 75%);
+    color: white;
+    font-family: Tahoma, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.container {
+    text-align: center;
+    padding: 20px;
+}
+
+h1 {
+    color: #ffb6d5;
+    margin-bottom: 30px;
+}
+
+.scene {
+    width: 300px;
+    height: 300px;
+    margin: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    perspective: 1000px;
+    touch-action: none;
+}
+
+.heart {
+    width: 220px;
+    height: 220px;
+    position: relative;
+    transform-style: preserve-3d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: grab;
+}
+
+.heart-shape {
+    position: absolute;
+    font-size: 220px;
+    line-height: 1;
+    color: #ed174f;
+    text-shadow:
+        2px 3px 2px #ffb6c9,
+        5px 8px 5px #850024,
+        0 0 25px #ff174f,
+        0 0 60px #ff174f;
+    transform: translateZ(10px);
+}
+
+.heart-text {
+    position: relative;
+    z-index: 2;
+    font-size: 24px;
+    font-weight: bold;
+    line-height: 1.7;
+    color: white;
+    text-shadow: 0 0 12px #ff9fbd;
+    transform: translateZ(40px);
+    pointer-events: none;
+}
+
+p {
+    color: #ffc1d6;
+    margin: 25px 0;
+}
+
+button {
+    background: #e83270;
+    color: white;
+    border: none;
+    padding: 13px 25px;
+    border-radius: 25px;
+    font-size: 16px;
+    cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>قلب ليكي يا أمي ❤️</h1>
+
+    <div class="scene">
+        <div class="heart" id="heart">
+
+            <div class="heart-shape">♥</div>
+
+            <div class="heart-text">
+                بحبك<br>
+                يا أمي
+            </div>
+
+        </div>
+    </div>
+
+    <p>حركي صباعك على القلب ❤️</p>
+
+    <button onclick="location.href='surprise.html'">
+        المفاجأة الأخيرة
+    </button>
+
+</div>
+
+<script>
+const heart = document.getElementById("heart");
+
+let rotateX = -10;
+let rotateY = 0;
+
+let dragging = false;
+let lastX = 0;
+let lastY = 0;
+
+function updateHeart() {
+    heart.style.transform =
+        `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+}
+
+heart.addEventListener("pointerdown", function(e) {
+    dragging = true;
+    lastX = e.clientX;
+    lastY = e.clientY;
+    heart.setPointerCapture(e.pointerId);
+});
+
+heart.addEventListener("pointermove", function(e) {
+    if (!dragging) return;
+
+    rotateY += (e.clientX - lastX) * 0.9;
+    rotateX -= (e.clientY - lastY) * 0.9;
+
+    lastX = e.clientX;
+    lastY = e.clientY;
+
+    updateHeart();
+});
+
+function stopDrag() {
+    dragging = false;
+}
+
+heart.addEventListener("pointerup", stopDrag);
+heart.addEventListener("pointercancel", stopDrag);
+
+updateHeart();
+</script>
+<audio id="backgroundMusic" autoplay loop>
+    <source src="music.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+const music = document.getElementById("backgroundMusic");
+music.volume = 0.15;
+
+music.play().catch(() => {
+    document.addEventListener("click", () => {
+        music.play();
+    }, { once: true });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,463 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Life ❤️</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: #02020a;
+    overflow: hidden;
+    font-family: Arial, sans-serif;
+    color: white;
+}
+
+canvas {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+}
+
+.title {
+    position: fixed;
+    top: 7%;
+    width: 100%;
+    text-align: center;
+    color: #ffe0f5;
+    font-size: clamp(25px, 5vw, 40px);
+    text-shadow: 0 0 15px #ff75bd, 0 0 35px #ff278d;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.hint {
+    position: fixed;
+    bottom: 7%;
+    width: 100%;
+    text-align: center;
+    color: #f5c9e8;
+    font-size: 14px;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.music {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 5;
+    width: 45px;
+    height: 45px;
+    border: none;
+    border-radius: 50%;
+    background: #e91e83;
+    color: white;
+    font-size: 21px;
+    box-shadow: 0 0 20px #ff36b2;
+}
+</style>
+</head>
+
+<body>
+
+<h1 class="title">My Life ❤️</h1>
+
+<div class="hint">
+اسحب الشاشة حول القلب وشاهده من جميع الاتجاهات
+</div>
+
+<button class="music" id="musicBtn">♫</button>
+<audio id="music" src="music.mp3" loop></audio>
+
+<canvas id="scene"></canvas>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
+
+<script>
+const canvas = document.getElementById("scene");
+
+const scene = new THREE.Scene();
+
+const camera = new THREE.PerspectiveCamera(
+    50,
+    window.innerWidth / window.innerHeight,
+    0.1,
+    100
+);
+
+const renderer = new THREE.WebGLRenderer({
+    canvas,
+    antialias: true,
+    alpha: true
+});
+
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+
+// =================================
+// الكاميرا: تدور حول القلب
+// =================================
+
+const cameraRadius = 8;
+
+let angle = 0;
+let targetAngle = 0;
+
+let verticalAngle = Math.PI / 2;
+let targetVertical = Math.PI / 2;
+
+function updateCamera() {
+    angle += (targetAngle - angle) * 0.08;
+    verticalAngle += (targetVertical - verticalAngle) * 0.08;
+
+    camera.position.x =
+        cameraRadius * Math.sin(verticalAngle) * Math.sin(angle);
+
+    camera.position.y =
+        cameraRadius * Math.cos(verticalAngle);
+
+    camera.position.z =
+        cameraRadius * Math.sin(verticalAngle) * Math.cos(angle);
+
+    camera.lookAt(0, 0, 0);
+}
+
+// =================================
+// القلب الثابت: سطح أمامي وخلفي
+// =================================
+
+const heartGroup = new THREE.Group();
+scene.add(heartGroup);
+
+const positions = [];
+const colors = [];
+
+const heartCount = 30000;
+
+for (let i = 0; i < heartCount; i++) {
+    const t = Math.random() * Math.PI * 2;
+    const r = Math.sqrt(Math.random());
+
+    const x = 16 * Math.pow(Math.sin(t), 3) * r;
+
+    const y = (
+        13 * Math.cos(t)
+        - 5 * Math.cos(2 * t)
+        - 2 * Math.cos(3 * t)
+        - Math.cos(4 * t)
+    ) * r;
+
+    const z =
+        (Math.random() * 2 - 1) *
+        0.85 * Math.sqrt(1 - r * r);
+
+    positions.push(
+        x * 0.115,
+        y * 0.115 + 0.2,
+        z
+    );
+
+    const b = 0.72 + Math.random() * 0.28;
+
+    colors.push(
+        b,
+        b * 0.66,
+        b * 0.9
+    );
+}
+
+const heartGeometry = new THREE.BufferGeometry();
+
+heartGeometry.setAttribute(
+    "position",
+    new THREE.Float32BufferAttribute(positions, 3)
+);
+
+heartGeometry.setAttribute(
+    "color",
+    new THREE.Float32BufferAttribute(colors, 3)
+);
+
+const heartMaterial = new THREE.PointsMaterial({
+    size: 0.027,
+    vertexColors: true,
+    transparent: true,
+    opacity: 0.95,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false
+});
+
+const heart = new THREE.Points(
+    heartGeometry,
+    heartMaterial
+);
+
+heartGroup.add(heart);
+
+// توهج القلب
+const glow = new THREE.Mesh(
+    new THREE.SphereGeometry(1, 32, 32),
+    new THREE.MeshBasicMaterial({
+        color: 0xff4caa,
+        transparent: true,
+        opacity: 0.045,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+    })
+);
+
+glow.scale.set(1.3, 1.4, 0.7);
+heartGroup.add(glow);
+
+// =================================
+// إنشاء مدارات الجزيئات
+// =================================
+
+function makeOrbit(count, rx, rz, height, color, size) {
+    const p = [];
+
+    for (let i = 0; i < count; i++) {
+        const a = Math.random() * Math.PI * 2;
+        const r = 0.55 + Math.random() * 0.85;
+
+        p.push(
+            Math.cos(a) * rx * r,
+            height + (Math.random() - 0.5) * 0.16,
+            Math.sin(a) * rz * r
+        );
+    }
+
+    const geometry = new THREE.BufferGeometry();
+
+    geometry.setAttribute(
+        "position",
+        new THREE.Float32BufferAttribute(p, 3)
+    );
+
+    const material = new THREE.PointsMaterial({
+        color,
+        size,
+        transparent: true,
+        opacity: 0.85,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+    });
+
+    return new THREE.Points(geometry, material);
+}
+
+const orbitGroup = new THREE.Group();
+scene.add(orbitGroup);
+
+const orbit1 = makeOrbit(4500, 2.1, 1.5, -1.55, 0xffa5dc, 0.032);
+const orbit2 = makeOrbit(3500, 2.6, 1.8, -1.75, 0xffffff, 0.025);
+const orbit3 = makeOrbit(2500, 1.8, 2.0, 1.4, 0xff69bc, 0.03);
+
+orbitGroup.add(orbit1, orbit2, orbit3);
+
+// =================================
+// جزيئات صغيرة تحيط بالقلب
+// =================================
+
+const dustPositions = [];
+
+for (let i = 0; i < 5000; i++) {
+    dustPositions.push(
+        (Math.random() - 0.5) * 8,
+        (Math.random() - 0.5) * 6,
+        (Math.random() - 0.5) * 7
+    );
+}
+
+const dustGeometry = new THREE.BufferGeometry();
+
+dustGeometry.setAttribute(
+    "position",
+    new THREE.Float32BufferAttribute(dustPositions, 3)
+);
+
+const dust = new THREE.Points(
+    dustGeometry,
+    new THREE.PointsMaterial({
+        color: 0xffb5e8,
+        size: 0.018,
+        transparent: true,
+        opacity: 0.7,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+    })
+);
+
+scene.add(dust);
+
+// =================================
+// نجوم الخلفية
+// =================================
+
+const starPositions = [];
+
+for (let i = 0; i < 4500; i++) {
+    starPositions.push(
+        (Math.random() - 0.5) * 35,
+        (Math.random() - 0.5) * 25,
+        (Math.random() - 0.5) * 25 - 5
+    );
+}
+
+const starGeometry = new THREE.BufferGeometry();
+
+starGeometry.setAttribute(
+    "position",
+    new THREE.Float32BufferAttribute(starPositions, 3)
+);
+
+const stars = new THREE.Points(
+    starGeometry,
+    new THREE.PointsMaterial({
+        color: 0xffffff,
+        size: 0.025,
+        transparent: true,
+        opacity: 0.8
+    })
+);
+
+scene.add(stars);
+
+// =================================
+// التحكم باللمس والماوس
+// =================================
+
+let dragging = false;
+let previousX = 0;
+let previousY = 0;
+
+canvas.addEventListener("pointerdown", e => {
+    dragging = true;
+    previousX = e.clientX;
+    previousY = e.clientY;
+    canvas.setPointerCapture(e.pointerId);
+});
+
+canvas.addEventListener("pointermove", e => {
+    if (!dragging) return;
+
+    const dx = e.clientX - previousX;
+    const dy = e.clientY - previousY;
+
+    targetAngle -= dx * 0.008;
+    targetVertical += dy * 0.008;
+
+    targetVertical = Math.max(
+        0.15,
+        Math.min(Math.PI - 0.15, targetVertical)
+    );
+
+    previousX = e.clientX;
+    previousY = e.clientY;
+});
+
+canvas.addEventListener("pointerup", () => dragging = false);
+canvas.addEventListener("pointercancel", () => dragging = false);
+
+// =================================
+// الحركة
+// =================================
+
+const clock = new THREE.Clock();
+
+function animate() {
+    requestAnimationFrame(animate);
+
+    const time = clock.getElapsedTime();
+
+    // القلب لا يدور
+    heartGroup.rotation.set(0, 0, 0);
+
+    // الكاميرا تدور حول القلب
+    updateCamera();
+
+    // المدارات تتحرك حول القلب
+    orbit1.rotation.y += 0.003;
+    orbit2.rotation.y -= 0.002;
+    orbit3.rotation.x += 0.002;
+    orbit3.rotation.y += 0.002;
+
+    // حركة النجوم والغبار
+    stars.rotation.y += 0.00012;
+    dust.rotation.y += 0.0003;
+
+    // نبض الإضاءة فقط دون تحريك القلب
+    heartMaterial.size =
+        0.027 + Math.sin(time * 2) * 0.003;
+
+    glow.material.opacity =
+        0.035 + Math.sin(time * 2) * 0.012;
+
+    renderer.render(scene, camera);
+}
+
+animate();
+
+// =================================
+// تغيير حجم الشاشة
+// =================================
+
+window.addEventListener("resize", () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+
+    camera.updateProjectionMatrix();
+
+    renderer.setSize(
+        window.innerWidth,
+        window.innerHeight
+    );
+});
+
+// =================================
+// الموسيقى
+// =================================
+
+const music = document.getElementById("music");
+const musicBtn = document.getElementById("musicBtn");
+
+musicBtn.addEventListener("click", async () => {
+    if (music.paused) {
+        try {
+            await music.play();
+            musicBtn.textContent = "♫";
+        } catch (error) {
+            alert("تأكد من وجود music.mp3 بجانب الصفحة");
+        }
+    } else {
+        music.pause();
+        musicBtn.textContent = "▶";
+    }
+});
+
+</script>
+<audio id="backgroundMusic" autoplay loop>
+    <source src="music.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+const music = document.getElementById("backgroundMusic");
+music.volume = 0.15;
+
+music.play().catch(() => {
+    document.addEventListener("click", () => {
+        music.play();
+    }, { once: true });
+});
+</script>
+</body>
+</html>
